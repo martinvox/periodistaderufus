@@ -79,6 +79,12 @@ python3 -m http.server 8000
 
 Luego abrir `http://localhost:8000/`.
 
+También se puede usar el script definido en `package.json`:
+
+```bash
+npm run serve
+```
+
 Interfaz tipo timeline en español con:
 
 - Búsqueda full-text que indexa simultáneamente el texto del tuit, autor, menciones, hashtags, etiquetas temáticas, títulos y descripciones de los links externos, y el cuerpo de los tuits citados o respondidos. Insensible a mayúsculas y a tildes (`peron` encuentra `Perón`).
@@ -92,6 +98,42 @@ Scroll infinito en lotes de 60 para mantenerlo fluido.
 ### `data/tweets.json`
 
 El dataset estructurado. Lista (`array`) de objetos donde cada objeto representa un tuit. Detalle exhaustivo de los campos abajo.
+
+## Pipeline reproducible
+
+El repo incluye scripts sin dependencias externas para reconstruir los datos desde Wayback:
+
+```bash
+npm run fetch:raw    # descarga snapshots y genera periodistarufus_wayback_combined.json
+npm run build:data   # transforma el bruto en data/tweets.json
+npm run update:data  # ejecuta ambas etapas
+npm run validate     # valida sintaxis JS y consistencia básica del dataset final
+```
+
+`fetch:raw` usa CDX y Timemap de Wayback, deduplica por ID de tuit y conserva la captura más reciente para cada `/status/<id>`. Se puede ajustar con variables de entorno:
+
+```bash
+TWITTER_USERNAME=PeriodistaRufus WAYBACK_BATCH_SIZE=5 WAYBACK_DELAY_MS=1500 npm run fetch:raw
+```
+
+Para pruebas parciales sin pisar el archivo principal:
+
+```bash
+WAYBACK_LIMIT=5 WAYBACK_OUTPUT=/tmp/rufus-wayback.json npm run fetch:raw
+WAYBACK_INPUT=/tmp/rufus-wayback.json TWEETS_OUTPUT=/tmp/rufus-tweets.json npm run build:data
+```
+
+Si CDX responde lento o con `503`, se puede probar sólo con Timemap:
+
+```bash
+WAYBACK_SKIP_CDX=1 npm run fetch:raw
+```
+
+Para probar sólo el descubrimiento sin descargar snapshots:
+
+```bash
+WAYBACK_DISCOVER_ONLY=1 npm run fetch:raw
+```
 
 ---
 

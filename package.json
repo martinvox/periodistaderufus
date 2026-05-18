@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "fetch:raw": "node scripts/fetch-wayback-combined.js",
+    "build:data": "node scripts/build-tweets-json.js",
+    "update:data": "npm run fetch:raw && npm run build:data",
+    "serve": "python3 -m http.server 8000",
+    "validate": "node --check app.js && node --check scripts/fetch-wayback-combined.js && node --check scripts/build-tweets-json.js && node -e \"const fs=require('fs'); const data=JSON.parse(fs.readFileSync('data/tweets.json','utf8')); if(!Array.isArray(data)||!data.length) throw new Error('data/tweets.json invalido'); if(new Set(data.map(t=>t.id)).size!==data.length) throw new Error('ids duplicados'); console.log(data.length + ' tweets validos')\""
+  }
+}
