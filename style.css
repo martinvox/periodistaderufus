@@ -79,6 +79,10 @@
   }
   .ref .reftype { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
   .ref .refbody { margin-top: 4px; white-space: pre-wrap; word-wrap: break-word; }
+  .ref .refmetrics { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .ref .refurls { margin-top: 2px; }
+  .ref .refurl { color: var(--link); text-decoration: none; font-size: 12px; }
+  .ref .refurl:hover { text-decoration: underline; }
   .urlcards { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
   .urlcard {
     border: 1px solid var(--border); border-radius: 12px;

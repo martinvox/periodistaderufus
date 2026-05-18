@@ -75,16 +75,29 @@ document.getElementById('stats').textContent =
 
 function avatarLetter(t) { return (t.author_name || 'R').trim().charAt(0).toUpperCase(); }
 
+
+
 function renderTweet(t, query) {
   const pm = t.public_metrics || {};
-  const text = linkify(t.text || '', t.urls, t.mentions);
+  const displayText = t.note_tweet_text || t.text || '';
+  const text = linkify(displayText, t.urls, t.mentions);
   const refs = (t.referenced || []).map(r => {
     const label = TYPE_LABEL[r.type] || r.type;
     const who = r.author_username ? `@${escHtml(r.author_username)}` : '';
-    const body = r.text ? escHtml(r.text) : '<em style="color:var(--muted)">(tuit no incluido en el snapshot)</em>';
+    const rText = r.text || '';
+    const body = rText ? escHtml(rText) : '<em style="color:var(--muted)">(tuit no incluido en el snapshot)</em>';
+    const refUrls = (r.urls || []).filter(u => u.expanded_url && !u.media_key).slice(0, 2).map(u => {
+      let domain = '';
+      try { domain = new URL(u.expanded_url).hostname.replace(/^www\./, ''); } catch {}
+      if (domain.includes('twitter.com') || domain.includes('x.com')) return '';
+      return `<a class="refurl" href="${escHtml(u.expanded_url)}" target="_blank" rel="noopener">${escHtml(u.display_url || domain || u.expanded_url)}</a>`;
+    }).filter(Boolean).join(' ');
+    const refCtags = (r.context_tags || []).slice(0, 4).map(x => `<span class="tag">${escHtml(x.name)}</span>`).join('');
     return `<div class="ref">
       <div class="reftype">${label} ${who}</div>
       <div class="refbody">${body}</div>
+      ${refUrls ? `<div class="refurls">${refUrls}</div>` : ''}
+      ${refCtags ? `<div class="tags">${refCtags}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -185,12 +198,13 @@ function tweetSearchHaystack(t) {
   if (t.__hay) return t.__hay;
   const parts = [
     t.text || '',
+    t.note_tweet_text || '',
     t.author_name || '', t.author_username || '',
     ...(t.mentions || []).map(m => m.username || ''),
     ...(t.hashtags || []),
     ...(t.context_tags || []).map(x => x.name || ''),
     ...(t.urls || []).flatMap(u => [u.expanded_url || '', u.title || '', u.description || '', u.display_url || '']),
-    ...(t.referenced || []).flatMap(r => [r.text || '', r.author_username || '', r.author_name || '']),
+    ...(t.referenced || []).flatMap(r => [r.text || '', r.author_username || '', r.author_name || '', ...(r.context_tags || []).map(x => x.name || ''), ...(r.urls || []).flatMap(u => [u.expanded_url || '', u.display_url || ''])]),
   ];
   t.__hay = norm(parts.join(' \n '));
   return t.__hay;
@@ -200,7 +214,7 @@ function applyFilters() {
   const f = getFilters();
   let list = DATA.slice();
   if (f.type) list = list.filter(t => refType(t) === f.type);
-  if (f.tag)  list = list.filter(t => (t.context_tags || []).some(x => x.name === f.tag));
+  if (f.tag)  list = list.filter(t => (t.context_tags || []).some(x => x.name === f.tag) || (t.referenced || []).some(r => (r.context_tags || []).some(x => x.name === f.tag)));
   if (f.q) {
     const qn = norm(f.q);
     if (qn) list = list.filter(t => tweetSearchHaystack(t).includes(qn));
