@@ -46,7 +46,7 @@ El procedimiento, conceptualmente:
 
 4. **Combinar y bajar un único archivo.** Las respuestas se juntan en un Blob y se dispara una descarga vía `<a download>`. Resultado: un solo `periodistarufus_wayback_combined.json` con todo.
 
-5. **Procesar a estructura final.** Una etapa de limpieza extrae los campos relevantes (texto, fecha, autor, métricas, entidades, etiquetas temáticas, tuits referenciados, links de procedencia) y produce `periodistarufus_tweets.json`, el dataset final que vive en este repo.
+5. **Procesar a estructura final.** Una etapa de limpieza extrae los campos relevantes (texto, fecha, autor, métricas, entidades, etiquetas temáticas, tuits referenciados, links de procedencia) y produce `data/tweets.json`, el dataset final que vive en este repo.
 
 ### Por qué archive.org tiene JSON y no HTML
 
@@ -58,14 +58,26 @@ Curiosidad del proceso: si abrís `https://twitter.com/PeriodistaRufus/status/<i
 
 ```
 .
-├── index.html                  ← sitio web estático (todo embebido)
-├── periodistarufus_tweets.json ← dataset estructurado
+├── index.html                  ← estructura HTML del sitio
+├── style.css                   ← estilos visuales
+├── app.js                      ← lógica de búsqueda, filtros y render
+├── data/
+│   └── tweets.json             ← dataset estructurado
+├── periodistarufus_wayback_combined.json ← dataset bruto combinado
 └── README.md                   ← este archivo
 ```
 
 ### `index.html`
 
-Sitio autónomo, sin dependencias externas. Un único archivo HTML que contiene el dataset completo embebido y el JavaScript que lo renderiza. Abrilo directamente en un navegador, o subilo a cualquier hosting estático (Vercel, Netlify, GitHub Pages) y funciona.
+Sitio estático sin dependencias externas. La interfaz vive en `index.html`, los estilos en `style.css`, la lógica en `app.js` y el dataset final en `data/tweets.json`.
+
+Como el navegador carga el JSON con `fetch`, conviene servir la carpeta con un servidor local o subirla a cualquier hosting estático (Vercel, Netlify, GitHub Pages). Por ejemplo:
+
+```bash
+python3 -m http.server 8000
+```
+
+Luego abrir `http://localhost:8000/`.
 
 Interfaz tipo timeline en español con:
 
@@ -77,7 +89,7 @@ Interfaz tipo timeline en español con:
 
 Scroll infinito en lotes de 60 para mantenerlo fluido.
 
-### `periodistarufus_tweets.json`
+### `data/tweets.json`
 
 El dataset estructurado. Lista (`array`) de objetos donde cada objeto representa un tuit. Detalle exhaustivo de los campos abajo.
 
